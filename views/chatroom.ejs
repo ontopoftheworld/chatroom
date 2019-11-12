@@ -1,0 +1,61 @@
+<% include partials/header %>
+
+    <div id="chatdiv" class="container">
+        <div id="topbar">
+            <h1 id="title">Welcome to Room <%= roomid %>!</h1>
+        </div>
+        <div style="overflow-y: scroll; height:70vh;"id="chatbox">
+            <div id="chat_header"></div>
+            <div id="chat_footer"></div>
+        </div>
+
+        <form method="POST" action="" id="messageForm">
+            <input type="text" name="message"   id="messageField" required>
+            <input type="submit" value="Send" id="sendbtn" class="btn btn-secondary">
+        </form>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            var url = window.location.href + '/messages';
+            var nickname = prompt('Please enter your nickname:');
+
+            function getMessages() {
+                $.get(url, function(data, status) {
+                    if (status === "success") {
+                        $('#chatbox div').empty();
+                        data.forEach(function(message) {
+                            $('#chat_footer').before(`<div id=chatmsg>
+                                <p id="nickname">${message.nickname}:</p>
+                                <p id="body">${message.body}</p>
+                            </div>`);
+                        })
+                    $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
+                    } else console.error(err);
+                });
+            }
+            
+            getMessages();
+            $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);  
+            var refreshIntervalId = setInterval(getMessages, 5000);
+        
+            $('#messageForm').submit(function(event) {
+                event.preventDefault();
+                var message = $('#messageField').val();
+                $('#messageField').val('');
+                
+                $.post(url, {message, nickname: nickname}, function(data, status){
+                    if (status === "success") {
+                        $('#chat_footer').before(`<div id=chatmsg>
+                            <p id="nickname">${nickname}:</p>
+                            <p id="body">${message}</p>
+                            </div>`);
+                        $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
+                        getMessages();
+                    } else console.error(err);
+                });
+            })
+        })
+    </script>
+
+<% include partials/footer %>
